@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="VibeMuse - Your AI-powered music tutor agent. Learn chords, scales, and improvisation with an interactive AI Music Sensei." />
+  <meta name="theme-color" content="#00e5ff" />
+  <meta property="og:title" content="VibeMuse — AI Music Tutor Agent" />
+  <meta property="og:description" content="An AI agent that teaches music theory, plays chords, highlights scales, and coaches your improvisation skills in real time." />
+  <meta property="og:type" content="website" />
+  <title>VibeMuse — AI Music Tutor Agent</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Tone.js — Web Audio framework (synchronous so Tone global is ready before app.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+
+  <!-- =============================================
+       HEADER
+  ============================================== -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-icon">🎵</div>
+      <div class="brand-text">
+        <span class="brand-name">VibeMuse</span>
+        <span class="brand-tagline">AI Music Tutor Agent</span>
+      </div>
+    </div>
+    <div class="header-controls">
+      <button class="btn-icon" id="btn-settings" title="Settings" aria-label="Open settings">⚙️</button>
+    </div>
+  </header>
+
+  <!-- =============================================
+       MAIN LAYOUT
+  ============================================== -->
+  <main class="app-layout">
+
+    <!-- LEFT SIDEBAR: Student info & Logs -->
+    <aside class="sidebar-left" id="sidebar-left">
+      <!-- Pull-tab to collapse sidebar — sits on the right edge -->
+      <button class="sidebar-pull-tab" id="sidebar-collapse-tab" title="Toggle panel" aria-label="Toggle sidebar">
+        <span class="pull-arrow">◀</span>
+      </button>
+
+      <div class="sidebar-scroll">
+
+        <section class="panel" id="panel-memory">
+          <h2 class="panel-title">📋 Student Profile</h2>
+          <div class="profile-grid" id="student-profile">
+            <div class="profile-item">
+              <span class="profile-label">Level</span>
+              <span class="profile-value badge" id="profile-level">Beginner</span>
+            </div>
+            <div class="profile-item" style="flex-direction:column;align-items:flex-start;gap:6px">
+              <span class="profile-label">Topics Covered</span>
+              <div class="tag-list" id="profile-topics">
+                <span class="tag">Getting Started</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-collapsible" id="panel-logs">
+          <h2 class="panel-title panel-toggle" id="logs-toggle">🎓 Sensei's Insights <span class="collapse-arrow">▾</span></h2>
+          <div class="logs-container" id="logs-container">
+            <div class="log-entry log-info">
+              <span class="log-time">00:00</span>
+              <span class="log-msg">Sensei initialized. Ready to learn! 🎵</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-collapsible" id="panel-guardrails">
+          <h2 class="panel-title panel-toggle" id="guardrails-toggle">🛡️ Harmony Guard <span class="collapse-arrow">▾</span></h2>
+          <div class="guardrail-list" id="guardrail-list">
+            <div class="guardrail-item pass">
+              <span class="guardrail-icon">✅</span>
+              <span class="guardrail-label">Input Validator</span>
+              <span class="guardrail-state">PASS</span>
+            </div>
+            <div class="guardrail-item pass">
+              <span class="guardrail-icon">✅</span>
+              <span class="guardrail-label">Topic Guard</span>
+              <span class="guardrail-state">PASS</span>
+            </div>
+            <div class="guardrail-item pass">
+              <span class="guardrail-icon">✅</span>
+              <span class="guardrail-label">Tool Param Validator</span>
+              <span class="guardrail-state">PASS</span>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /sidebar-scroll -->
+    </aside>
+
+    <!-- CENTER: Chat Interface -->
+    <section class="chat-container" id="chat-container">
+      <div class="chat-messages" id="chat-messages">
+
+        <!-- Welcome Message -->
+        <div class="message message-agent">
+          <div class="message-avatar">🎵</div>
+          <div class="message-content">
+            <div class="message-bubble">
+              <p>Hey there! I'm <strong>VibeMuse</strong>, your AI Music Sensei. 🎶</p>
+              <p>I can teach you chords, scales, and music theory, and even play them right here in your browser! Try asking me:</p>
+              <ul class="welcome-list">
+                <li><span class="list-bullet">🎹</span> <em>"Play a C major 7 chord"</em></li>
+                <li><span class="list-bullet">🎸</span> <em>"Show me the G major pentatonic scale"</em></li>
+                <li><span class="list-bullet">🎼</span> <em>"What's a good sad chord progression?"</em></li>
+                <li><span class="list-bullet">👂</span> <em>"Start an ear training quiz"</em></li>
+              </ul>
+              <p>First, make sure to set your <strong>Gemini API Key</strong> in settings (⚙️) above!</p>
+            </div>
+            <span class="message-time">Now</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Typing Indicator -->
+      <div class="typing-indicator" id="typing-indicator" style="display:none;">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <span style="margin-left:8px; font-size:0.8rem; color: var(--text-muted);">VibeMuse is thinking...</span>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input-area">
+        <div class="quick-actions" id="quick-actions">
+          <button class="quick-btn" data-prompt="Play a Cmaj7 chord and explain what makes it sound jazzy.">🎹 Cmaj7 Chord</button>
+          <button class="quick-btn" data-prompt="Show me the A minor pentatonic scale on the keyboard.">🎸 Am Pentatonic</button>
+          <button class="quick-btn" data-prompt="Play a classic I-IV-V-I blues progression in E.">🎵 Blues Progression</button>
+          <button class="quick-btn" data-prompt="Start an ear training quiz at beginner level.">👂 Ear Training</button>
+        </div>
+        <div class="input-row">
+          <textarea
+            id="chat-input"
+            class="chat-input"
+            placeholder="Ask VibeMuse anything about music..."
+            rows="1"
+            aria-label="Chat with VibeMuse"
+          ></textarea>
+          <button id="btn-send" class="btn-send" title="Send message" aria-label="Send message">
+            <span class="send-icon">➤</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Visualizer & Sandbox -->
+    <aside class="sidebar-right" id="sidebar-right">
+
+      <!-- Synesthetic Canvas Visualizer -->
+      <section class="panel panel-canvas">
+        <h2 class="panel-title">✨ Synesthetic Visualizer</h2>
+        <canvas id="visualizer-canvas" class="visualizer-canvas" aria-label="Music visualizer"></canvas>
+      </section>
+
+      <!-- Chord Sandbox -->
+      <section class="panel panel-sandbox">
+        <h2 class="panel-title">🎼 Active Lesson</h2>
+        <div id="sandbox-content" class="sandbox-content">
+          <p class="sandbox-placeholder">Start a conversation with VibeMuse to see your active lesson info here...</p>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- Interactive Virtual Piano Panel (Spans bottom area) -->
+    <section class="panel panel-piano" id="panel-piano">
+      <!-- Drag handle for resizing entire playboard panel -->
+      <div class="piano-resize-handle" id="piano-resize-handle" title="Drag to resize playboard"></div>
+      <div class="piano-header">
+        <div class="piano-title-area">
+          <h2 class="piano-title">🎹 Virtual Playboard</h2>
+        </div>
+        <div class="piano-controls">
+          <!-- Octave stepper -->
+          <div class="piano-ctrl-group">
+            <span class="ctrl-label">Octave</span>
+            <div class="octave-stepper">
+              <button class="btn-stepper" id="btn-octave-down" title="Lower octave" aria-label="Lower octave">−</button>
+              <span class="octave-display" id="octave-display">4</span>
+              <button class="btn-stepper" id="btn-octave-up" title="Higher octave" aria-label="Higher octave">+</button>
+            </div>
+          </div>
+          
+          <!-- Hints toggle -->
+          <div class="piano-ctrl-group">
+            <span class="ctrl-label">Hints</span>
+            <button class="btn-toggle-hints active" id="btn-toggle-hints" title="Toggle letter hints">Letters</button>
+          </div>
+
+          <!-- Volume slider -->
+          <div class="piano-ctrl-group piano-vol-group">
+            <span class="ctrl-label">Volume</span>
+            <div class="volume-slider-wrapper">
+              <span class="volume-icon">🔊</span>
+              <input type="range" id="piano-volume" class="piano-volume-slider" min="0" max="100" value="80" aria-label="Volume slider" />
+            </div>
+          </div>
+
+          <!-- Stop sound panic button -->
+          <button class="btn-stop-panic" id="btn-stop-audio" title="Stop all notes">⏹ Stop Sound</button>
+        </div>
+      </div>
+
+      <!-- Piano Keys -->
+      <div class="piano-wrapper show-hints" id="piano-wrapper"></div>
+    </section>
+  </main>
+
+  <!-- =============================================
+       SETTINGS MODAL
+  ============================================== -->
+  <div class="modal-overlay" id="modal-settings" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="settings-title">⚙️ Settings</h2>
+        <button class="btn-close" id="btn-close-settings" aria-label="Close settings">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="api-key-input">Gemini API Key</label>
+          <div class="api-key-row">
+            <input type="password" id="api-key-input" class="form-input" placeholder="Enter your Gemini API Key..." autocomplete="off" />
+            <button class="btn-toggle-key" id="btn-toggle-key" aria-label="Show/hide API key">👁️</button>
+          </div>
+          <p class="form-hint">
+            Your key is stored only in your browser's <code>localStorage</code> and never sent anywhere except the Gemini API.
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free API key →</a>
+          </p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="model-select">Gemini Model</label>
+          <select id="model-select" class="form-input">
+            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Recommended)</option>
+            <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
+            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="skill-select">Agent Skill Mode</label>
+          <select id="skill-select" class="form-input">
+            <option value="tutor">🎓 Music Tutor (Default)</option>
+            <option value="songwriter">🎸 Songwriter Partner</option>
+            <option value="ear-trainer">👂 Ear Training Coach</option>
+          </select>
+        </div>
+        <div class="token-usage">
+          <span class="token-label">Token Usage (Session)</span>
+          <div class="token-bar-bg">
+            <div class="token-bar-fill" id="token-bar-fill" style="width:0%"></div>
+          </div>
+          <span class="token-count" id="token-count">0 / 1,000,000 tokens</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-clear-memory">🗑️ Clear Memory</button>
+        <button class="btn-primary" id="btn-save-settings">💾 Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================
+       APPLICATION SCRIPT
+       Single bundled file — works on file:// without a dev server.
+       (ES modules are blocked by CORS on file:// protocol)
+  ============================================== -->
+  <script src="app.js" defer></script>
+
+</body>
+</html>
